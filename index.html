@@ -1,0 +1,294 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Httpretty by gabrielfalcao</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Httpretty</h1>
+        <p>HTTP client mocking tool for Python</p>
+        <p class="view"><a href="https://github.com/gabrielfalcao/HTTPretty">View the Project on GitHub <small>gabrielfalcao/HTTPretty</small></a></p>
+        <ul>
+          <li><a href="https://github.com/gabrielfalcao/HTTPretty/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/gabrielfalcao/HTTPretty/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/gabrielfalcao/HTTPretty">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>HTTPretty</h1>
+
+<blockquote>
+<p>Version 0.5
+<a href="http://travis-ci.org/gabrielfalcao/HTTPretty"><img src="https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png" alt="Build Status"></a></p>
+</blockquote>
+
+<h1>changes</h1>
+
+<h2>version 0.5</h2>
+
+<ul>
+<li>supporting <code>https</code> (SSL'ed URLs)</li>
+</ul><h1>What</h1>
+
+<p>HTTPretty is a HTTP client mock library for Python 100% inspired on ruby's <a href="http://fakeweb.rubyforge.org/">FakeWeb</a></p>
+
+<h1>Motivation</h1>
+
+<p>When building systems that access external resources such as RESTful
+webservices, XMLRPC or even simple HTTP requests, we stumble in the
+problem:</p>
+
+<pre><code>"I'm gonna need to mock all those requests"
+</code></pre>
+
+<p>It brings a lot of hassle, you will need to use a generic mocking
+tool, mess with scope and so on.</p>
+
+<h2>The idea behind HTTPretty (how it works)</h2>
+
+<p>HTTPretty <a href="http://en.wikipedia.org/wiki/Monkey_patch">monkey matches</a>
+Python's <a href="http://docs.python.org/library/socket.html">socket</a> core
+module, reimplementing the HTTP protocol, by mocking requests and
+responses.</p>
+
+<p>As for it works in this way, you don't need to worry what http library
+you're gonna use.</p>
+
+<p>HTTPretty will mock the response for you :) <em>(and also give you the latest requests so that you can check them)</em></p>
+
+<h1>Usage</h1>
+
+<h2>expecting a simple response body</h2>
+
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">HTTPretty</span>
+
+<span class="k">def</span> <span class="nf">test_one</span><span class="p">():</span>
+    <span class="n">HTTPretty</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>  <span class="c"># enable HTTPretty so that it will monkey patch the socket module</span>
+    <span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://yipit.com/"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">"Find the best daily deals"</span><span class="p">)</span>
+
+    <span class="n">fd</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://yipit.com'</span><span class="p">)</span>
+    <span class="n">got</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">assert</span> <span class="n">got</span> <span class="o">==</span> <span class="s">"Find the best daily deals"</span>
+
+    <span class="n">HTTPretty</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>  <span class="c"># disable afterwards, so that you will have no problems in coda that uses that socket module</span>
+</pre></div>
+
+<h2>ohhhh, really? can that be easier?</h2>
+
+<p><strong>YES</strong> we've got a decorator</p>
+
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">HTTPretty</span><span class="p">,</span> <span class="n">httprettified</span>
+
+<span class="nd">@httprettified</span>
+<span class="k">def</span> <span class="nf">test_one</span><span class="p">():</span>
+    <span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://yipit.com/"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">"Find the best daily deals"</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://yipit.com'</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s">"Find the best daily deals"</span>
+</pre></div>
+
+<p>the <code>@httprettified</code> is a short-hand decorator that wraps the
+decorated function with HTTPretty.enable() and then calls
+HTTPretty.disable() right after.</p>
+
+<h2>mocking the status code</h2>
+
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">HTTPretty</span><span class="p">,</span> <span class="n">httprettified</span>
+
+<span class="nd">@httprettified</span>
+<span class="k">def</span> <span class="nf">test_github_access</span><span class="p">():</span>
+    <span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://github.com/"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">"here is the mocked body"</span><span class="p">,</span>
+                           <span class="n">status</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span>
+
+    <span class="n">fd</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com'</span><span class="p">)</span>
+    <span class="n">got</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">assert</span> <span class="n">got</span> <span class="o">==</span> <span class="s">"here is the mocked body"</span>
+    <span class="k">assert</span> <span class="n">fd</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="mi">201</span>
+</pre></div>
+
+<h2>you can tell HTTPretty to return any HTTP headers you want</h2>
+
+<p><strong>and all you need is to add keyword args in which the keys are always lower-cased and with underscores <code>_</code> instead of dashes <code>-</code></strong></p>
+
+<p>For example, let's say you want to mock that server returns <code>content-type</code>.
+To do so, use the argument <code>content_type</code>, <strong>all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name</strong>.</p>
+
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">urllib2</span>
+
+<span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://github.com/gabrielfalcao"</span><span class="p">,</span>
+                       <span class="n">body</span><span class="o">=</span><span class="s">'{"success": false}'</span><span class="p">,</span>
+                       <span class="n">status</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                       <span class="n">content_type</span><span class="o">=</span><span class="s">'text/json'</span><span class="p">)</span>
+
+<span class="n">fd</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao'</span><span class="p">)</span>
+<span class="n">got</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">assert</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">got</span><span class="p">)[</span><span class="s">'success'</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">False</span>
+<span class="k">assert</span> <span class="n">fd</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="mi">500</span>
+
+</pre></div>
+
+<h2>rotating responses</h2>
+
+<p>same URL, same request method, the first request return the first
+HTTPretty.Response, all the subsequent ones return the last (status
+202)</p>
+
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+
+<span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://github.com/gabrielfalcao/httpretty"</span><span class="p">,</span>
+                       <span class="n">responses</span><span class="o">=</span><span class="p">[</span>
+                           <span class="n">HTTPretty</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="s">"first response"</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">201</span><span class="p">),</span>
+                           <span class="n">HTTPretty</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="s">'second and last response'</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">202</span><span class="p">),</span>
+                        <span class="p">])</span>
+
+<span class="n">request1</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
+<span class="n">body1</span> <span class="o">=</span> <span class="n">request1</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">request1</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="n">expect</span><span class="p">(</span><span class="n">request1</span><span class="o">.</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">body1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'first response'</span><span class="p">)</span>
+
+<span class="n">request2</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
+<span class="n">body2</span> <span class="o">=</span> <span class="n">request2</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">request2</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="n">expect</span><span class="p">(</span><span class="n">request2</span><span class="o">.</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">202</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">body2</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'second and last response'</span><span class="p">)</span>
+
+<span class="n">request3</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
+<span class="n">body3</span> <span class="o">=</span> <span class="n">request3</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">request3</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">request3</span><span class="o">.</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">202</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">body3</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'second and last response'</span><span class="p">)</span>
+</pre></div>
+
+<h2>expect for a response, and check the request got by the "server" to make sure it was fine.</h2>
+
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+<span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">HTTPretty</span>
+
+
+<span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="s">"http://api.yipit.com/foo"</span><span class="p">,</span>
+                       <span class="n">body</span><span class="o">=</span><span class="s">'{"repositories": ["HTTPretty", "lettuce"]}'</span><span class="p">)</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">'http://api.yipit.com/foo'</span><span class="p">,</span>
+                        <span class="s">'{"username": "gabrielfalcao"}'</span><span class="p">,</span>
+                        <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s">'content-type'</span><span class="p">:</span> <span class="s">'text/json'</span><span class="p">,</span>
+                        <span class="p">})</span>
+
+<span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'{"repositories": ["HTTPretty", "lettuce"]}'</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">last_request</span><span class="o">.</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">"POST"</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">last_request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">'content-type'</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'text/json'</span><span class="p">)</span>
+</pre></div>
+
+<h1>Acknowledgements</h1>
+
+<h2>caveats with the <a href="http://docs.python-requests.org/en/latest/">requests</a> library</h2>
+
+<h3>
+<code>forcing_headers</code> + <code>Content-Length</code>
+</h3>
+
+<p>if you use the <code>forcing_headers</code> options make sure to add the header
+<code>Content-Length</code> otherwise the
+<a href="http://docs.python-requests.org/en/latest/">requests</a> will try to
+load the response endlessly</p>
+
+<h1>Dependencies</h1>
+
+<p>you will need <strong>ONLY</strong> if you decide to contribute to HTTPretty which
+means you're gonna need run our test suite</p>
+
+<ul>
+<li><a href="http://code.google.com/p/python-nose/">nose</a></li>
+<li><a href="http://github.com/gabrielfalcao/sure/">sure</a></li>
+<li><a href="http://code.google.com/p/httplib2/">httplib2</a></li>
+<li><a href="http://github.com/gabrielfalcao/bolacha/">bolacha</a></li>
+<li><a href="http://tornadoweb.org/">tornado</a></li>
+<li>
+<a href="http://code.google.com/p/python-multiprocessing/">multiprocessing</a> <strong>(only needed if you're running python &lt; 2.6)</strong>
+</li>
+</ul><h2>Here is a oneliner</h2>
+
+<h3>I know you want it :)</h3>
+
+<div class="highlight"><pre>pip install -r requirements.pip
+</pre></div>
+
+<h1>Contributing</h1>
+
+<ol>
+<li>fork and clone the project</li>
+<li>install the dependencies above</li>
+<li>run the tests with make:
+<code>bash
+make unit functional
+</code>
+</li>
+<li>hack at will</li>
+<li>commit, push etc</li>
+<li>send a pull request</li>
+</ol><h1>License</h1>
+
+<pre><code>&lt;HTTPretty - HTTP client mock for Python&gt;
+Copyright (C) &lt;2011&gt;  Gabriel Falcão &lt;gabriel@nacaolivre.org&gt;
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+</code></pre>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/gabrielfalcao">gabrielfalcao</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
