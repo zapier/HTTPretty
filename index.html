@@ -30,43 +30,41 @@
         <h1>HTTPretty</h1>
 
 <blockquote>
-<p>Version 0.5
-<a href="http://travis-ci.org/gabrielfalcao/HTTPretty"><img src="https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png" alt="Build Status"></a></p>
+<p>Version 0.5.1</p>
 </blockquote>
 
-<h1>changes</h1>
+<p><a href="http://travis-ci.org/gabrielfalcao/HTTPretty"><img src="https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png" alt="Build Status"></a></p>
 
-<h2>version 0.5</h2>
+<h1>In a nutshell</h1>
 
-<ul>
-<li>supporting <code>https</code> (SSL'ed URLs)</li>
-</ul><h1>What</h1>
+<p>Once upon a time a python developer wanted to use a RESTful api,
+everything was fine but until the day he needed to test the code that
+hits the RESTful API: what if the API server is down? What if its
+content has changed ?</p>
 
-<p>HTTPretty is a HTTP client mock library for Python 100% inspired on ruby's <a href="http://fakeweb.rubyforge.org/">FakeWeb</a></p>
+<p>Don't worry, HTTPretty is here for you:</p>
 
-<h1>Motivation</h1>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+<span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">HTTPretty</span>
+<span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">httprettified</span>
 
-<p>When building systems that access external resources such as RESTful
-webservices, XMLRPC or even simple HTTP requests, we stumble in the
-problem:</p>
 
-<pre><code>"I'm gonna need to mock all those requests"
-</code></pre>
+<span class="nd">@httprettified</span>
+<span class="k">def</span> <span class="nf">test_yipit_api_returning_deals</span><span class="p">():</span>
+    <span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://api.yipit.com/v1/deals/"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">"[{"</span><span class="n">title</span><span class="s">": "</span><span class="n">Test</span> <span class="n">Deal</span><span class="s">"}]"</span><span class="p">,</span>
+                           <span class="n">content_type</span><span class="o">=</span><span class="s">"application/json"</span><span class="p">)</span>
 
-<p>It brings a lot of hassle, you will need to use a generic mocking
-tool, mess with scope and so on.</p>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://api.yipit.com/v1/deals/'</span><span class="p">)</span>
 
-<h2>The idea behind HTTPretty (how it works)</h2>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">([{</span><span class="s">"title"</span><span class="p">:</span> <span class="s">"Test Deal"</span><span class="p">}])</span>
+</pre></div>
 
-<p>HTTPretty <a href="http://en.wikipedia.org/wiki/Monkey_patch">monkey matches</a>
-Python's <a href="http://docs.python.org/library/socket.html">socket</a> core
-module, reimplementing the HTTP protocol, by mocking requests and
-responses.</p>
+<h1>A more technical description</h1>
 
-<p>As for it works in this way, you don't need to worry what http library
-you're gonna use.</p>
-
-<p>HTTPretty will mock the response for you :) <em>(and also give you the latest requests so that you can check them)</em></p>
+<p>HTTPretty is a HTTP client mock library for Python 100% inspired on ruby's <a href="http://fakeweb.rubyforge.org/">FakeWeb</a>.
+If you come from ruby this would probably sound familiar <img class="emoji" title=":smiley:" alt=":smiley:" src="https://a248.e.akamai.net/assets.github.com/images/icons/emoji/smiley.png" height="20" width="20" align="absmiddle"></p>
 
 <h1>Usage</h1>
 
@@ -208,6 +206,30 @@ HTTPretty.Response, all the subsequent ones return the last (status
 <span class="n">expect</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">last_request</span><span class="o">.</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">"POST"</span><span class="p">)</span>
 <span class="n">expect</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">last_request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">'content-type'</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'text/json'</span><span class="p">)</span>
 </pre></div>
+
+<h1>Motivation</h1>
+
+<p>When building systems that access external resources such as RESTful
+webservices, XMLRPC or even simple HTTP requests, we stumble in the
+problem:</p>
+
+<pre><code>"I'm gonna need to mock all those requests"
+</code></pre>
+
+<p>It brings a lot of hassle, you will need to use a generic mocking
+tool, mess with scope and so on.</p>
+
+<h2>The idea behind HTTPretty (how it works)</h2>
+
+<p>HTTPretty <a href="http://en.wikipedia.org/wiki/Monkey_patch">monkey matches</a>
+Python's <a href="http://docs.python.org/library/socket.html">socket</a> core
+module, reimplementing the HTTP protocol, by mocking requests and
+responses.</p>
+
+<p>As for it works in this way, you don't need to worry what http library
+you're gonna use.</p>
+
+<p>HTTPretty will mock the response for you :) <em>(and also give you the latest requests so that you can check them)</em></p>
 
 <h1>Acknowledgements</h1>
 
