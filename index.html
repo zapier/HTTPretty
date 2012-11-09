@@ -53,7 +53,7 @@ content has changed ?</p>
 <span class="nd">@httprettified</span>
 <span class="k">def</span> <span class="nf">test_yipit_api_returning_deals</span><span class="p">():</span>
     <span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://api.yipit.com/v1/deals/"</span><span class="p">,</span>
-                           <span class="n">body</span><span class="o">=</span><span class="s">"[{"</span><span class="n">title</span><span class="s">": "</span><span class="n">Test</span> <span class="n">Deal</span><span class="s">"}]"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">'[{"title": "Test Deal"}]'</span><span class="p">,</span>
                            <span class="n">content_type</span><span class="o">=</span><span class="s">"application/json"</span><span class="p">)</span>
 
     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://api.yipit.com/v1/deals/'</span><span class="p">)</span>
@@ -70,7 +70,7 @@ If you come from ruby this would probably sound familiar <img class="emoji" titl
 
 <h2>expecting a simple response body</h2>
 
-<div class="highlight"><pre><span class="kn">import</span> <span class="nn">urllib2</span>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">HTTPretty</span>
 
 <span class="k">def</span> <span class="nf">test_one</span><span class="p">():</span>
@@ -78,11 +78,9 @@ If you come from ruby this would probably sound familiar <img class="emoji" titl
     <span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://yipit.com/"</span><span class="p">,</span>
                            <span class="n">body</span><span class="o">=</span><span class="s">"Find the best daily deals"</span><span class="p">)</span>
 
-    <span class="n">fd</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://yipit.com'</span><span class="p">)</span>
-    <span class="n">got</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://yipit.com'</span><span class="p">)</span>
 
-    <span class="k">assert</span> <span class="n">got</span> <span class="o">==</span> <span class="s">"Find the best daily deals"</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s">"Find the best daily deals"</span>
 
     <span class="n">HTTPretty</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>  <span class="c"># disable afterwards, so that you will have no problems in coda that uses that socket module</span>
 </pre></div>
@@ -109,8 +107,8 @@ HTTPretty.disable() right after.</p>
 
 <h2>mocking the status code</h2>
 
-<div class="highlight"><pre><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">urllib2</span>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
 <span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">HTTPretty</span><span class="p">,</span> <span class="n">httprettified</span>
 
 <span class="nd">@httprettified</span>
@@ -119,12 +117,8 @@ HTTPretty.disable() right after.</p>
                            <span class="n">body</span><span class="o">=</span><span class="s">"here is the mocked body"</span><span class="p">,</span>
                            <span class="n">status</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span>
 
-    <span class="n">fd</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com'</span><span class="p">)</span>
-    <span class="n">got</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-    <span class="k">assert</span> <span class="n">got</span> <span class="o">==</span> <span class="s">"here is the mocked body"</span>
-    <span class="k">assert</span> <span class="n">fd</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="mi">201</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://github.com'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
 </pre></div>
 
 <h2>you can tell HTTPretty to return any HTTP headers you want</h2>
@@ -134,29 +128,23 @@ HTTPretty.disable() right after.</p>
 <p>For example, let's say you want to mock that server returns <code>content-type</code>.
 To do so, use the argument <code>content_type</code>, <strong>all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name</strong>.</p>
 
-<div class="highlight"><pre><span class="kn">import</span> <span class="nn">urllib2</span>
-
-<span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://github.com/gabrielfalcao"</span><span class="p">,</span>
+<div class="highlight"><pre><span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://foo-api.com/gabrielfalcao"</span><span class="p">,</span>
                        <span class="n">body</span><span class="o">=</span><span class="s">'{"success": false}'</span><span class="p">,</span>
                        <span class="n">status</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
                        <span class="n">content_type</span><span class="o">=</span><span class="s">'text/json'</span><span class="p">)</span>
 
-<span class="n">fd</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao'</span><span class="p">)</span>
-<span class="n">got</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://foo-api.com/gabrielfalcao'</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">got</span><span class="p">)[</span><span class="s">'success'</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">False</span>
-<span class="k">assert</span> <span class="n">fd</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="mi">500</span>
-
+<span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">({</span><span class="s">'success'</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
 </pre></div>
 
 <h2>rotating responses</h2>
 
 <p>same URL, same request method, the first request return the first
-HTTPretty.Response, all the subsequent ones return the last (status
-202)</p>
+HTTPretty.Response, all the subsequent ones return the last (status 202)</p>
 
-<div class="highlight"><pre><span class="kn">import</span> <span class="nn">urllib2</span>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
 
 <span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://github.com/gabrielfalcao/httpretty"</span><span class="p">,</span>
@@ -165,25 +153,18 @@ HTTPretty.Response, all the subsequent ones return the last (status
                            <span class="n">HTTPretty</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="s">'second and last response'</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">202</span><span class="p">),</span>
                         <span class="p">])</span>
 
-<span class="n">request1</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
-<span class="n">body1</span> <span class="o">=</span> <span class="n">request1</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="n">request1</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">response1</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">response1</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">response1</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'first response'</span><span class="p">)</span>
 
-<span class="n">expect</span><span class="p">(</span><span class="n">request1</span><span class="o">.</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
-<span class="n">expect</span><span class="p">(</span><span class="n">body1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'first response'</span><span class="p">)</span>
+<span class="n">response2</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">response2</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">202</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">response2</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'second and last response'</span><span class="p">)</span>
 
-<span class="n">request2</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
-<span class="n">body2</span> <span class="o">=</span> <span class="n">request2</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="n">request2</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">response3</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
 
-<span class="n">expect</span><span class="p">(</span><span class="n">request2</span><span class="o">.</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">202</span><span class="p">)</span>
-<span class="n">expect</span><span class="p">(</span><span class="n">body2</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'second and last response'</span><span class="p">)</span>
-
-<span class="n">request3</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
-<span class="n">body3</span> <span class="o">=</span> <span class="n">request3</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="n">request3</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<span class="n">expect</span><span class="p">(</span><span class="n">request3</span><span class="o">.</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">202</span><span class="p">)</span>
-<span class="n">expect</span><span class="p">(</span><span class="n">body3</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'second and last response'</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">response3</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">202</span><span class="p">)</span>
+<span class="n">expect</span><span class="p">(</span><span class="n">response3</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'second and last response'</span><span class="p">)</span>
 </pre></div>
 
 <h2>expect for a response, and check the request got by the "server" to make sure it was fine.</h2>
@@ -193,7 +174,7 @@ HTTPretty.Response, all the subsequent ones return the last (status
 <span class="kn">from</span> <span class="nn">httpretty</span> <span class="kn">import</span> <span class="n">HTTPretty</span>
 
 
-<span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="s">"http://api.yipit.com/foo"</span><span class="p">,</span>
+<span class="n">HTTPretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">HTTPretty</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="s">"http://api.yipit.com/foo/"</span><span class="p">,</span>
                        <span class="n">body</span><span class="o">=</span><span class="s">'{"repositories": ["HTTPretty", "lettuce"]}'</span><span class="p">)</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">'http://api.yipit.com/foo'</span><span class="p">,</span>
@@ -221,7 +202,7 @@ tool, mess with scope and so on.</p>
 
 <h2>The idea behind HTTPretty (how it works)</h2>
 
-<p>HTTPretty <a href="http://en.wikipedia.org/wiki/Monkey_patch">monkey matches</a>
+<p>HTTPretty <a href="http://en.wikipedia.org/wiki/Monkey_patch">monkey patches</a>
 Python's <a href="http://docs.python.org/library/socket.html">socket</a> core
 module, reimplementing the HTTP protocol, by mocking requests and
 responses.</p>
@@ -244,32 +225,31 @@ you're gonna use.</p>
 <a href="http://docs.python-requests.org/en/latest/">requests</a> will try to
 load the response endlessly</p>
 
-<h1>Dependencies</h1>
+<h1>Officially supported libraries</h1>
 
-<p>you will need <strong>ONLY</strong> if you decide to contribute to HTTPretty which
-means you're gonna need run our test suite</p>
+<p>Because HTTPretty works in the socket level it should work with any HTTP client libraries, although it is <a href="https://github.com/gabrielfalcao/HTTPretty/tree/master/tests/functional">battle tested</a> against:</p>
 
 <ul>
-<li><a href="http://code.google.com/p/python-nose/">nose</a></li>
-<li><a href="http://github.com/gabrielfalcao/sure/">sure</a></li>
+<li><a href="http://docs.python-requests.org/en/latest/">requests</a></li>
 <li><a href="http://code.google.com/p/httplib2/">httplib2</a></li>
-<li><a href="http://github.com/gabrielfalcao/bolacha/">bolacha</a></li>
-<li><a href="http://tornadoweb.org/">tornado</a></li>
-<li>
-<a href="http://code.google.com/p/python-multiprocessing/">multiprocessing</a> <strong>(only needed if you're running python &lt; 2.6)</strong>
-</li>
-</ul><h2>Here is a oneliner</h2>
+<li><a href="http://docs.python.org/2/library/urllib2.html">urllib2</a></li>
+</ul><h1>Hacking on HTTPretty</h1>
 
-<h3>I know you want it :)</h3>
+<h4>create a virtual env</h4>
 
-<div class="highlight"><pre>pip install -r requirements.pip
+<p>you will need <a href="http://www.doughellmann.com/projects/virtualenvwrapper/">virtualenvwrapper</a></p>
+
+<div class="highlight"><pre><span class="go">mkvirtualenv --distribute --no-site-packages HTTPretty</span>
 </pre></div>
 
-<h1>Contributing</h1>
+<h4>install the dependencies</h4>
+
+<div class="highlight"><pre><span class="go">pip install -r requirements.pip</span>
+</pre></div>
+
+<h4>next steps:</h4>
 
 <ol>
-<li>fork and clone the project</li>
-<li>install the dependencies above</li>
 <li>run the tests with make:
 <code>bash
 make unit functional
@@ -281,7 +261,7 @@ make unit functional
 </ol><h1>License</h1>
 
 <pre><code>&lt;HTTPretty - HTTP client mock for Python&gt;
-Copyright (C) &lt;2011&gt;  Gabriel Falcão &lt;gabriel@nacaolivre.org&gt;
+Copyright (C) &lt;2011-2012&gt;  Gabriel Falcão &lt;gabriel@nacaolivre.org&gt;
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
