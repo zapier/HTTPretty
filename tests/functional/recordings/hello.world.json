@@ -1,0 +1,13 @@
+{
+    "request": {
+        "method": "POST",
+        "uri": "http://httpbin.org/post"
+    },
+    "response": {
+        "status": 200,
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": "{\n  \"origin\": \"123.123.123.123\",\n  \"files\": {},\n  \"form\": {\n    \"hello\": \"world!\"\n  },\n  \"url\": \"http://httpbin.org/post\",\n  \"args\": {},\n  \"headers\": {\n    \"Content-Length\": \"14\",\n    \"Accept-Encoding\": \"gzip, deflate, compress\",\n    \"Connection\": \"keep-alive\",\n    \"Accept\": \"*/*\",\n    \"User-Agent\": \"python-requests/0.14.2 CPython/2.7.1 Darwin/11.4.0\",\n    \"Host\": \"httpbin.org\",\n    \"Content-Type\": \"application/x-www-form-urlencoded\"\n  },\n  \"json\": null,\n  \"data\": \"\"\n}"
+    }
+}

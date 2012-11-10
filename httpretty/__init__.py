@@ -31,6 +31,7 @@ import functools
 import warnings
 import logging
 import traceback
+import json
 
 from datetime import datetime
 from datetime import timedelta
@@ -525,6 +526,68 @@ class URIInfo(object):
                    result.scheme,
                    entry)
 
+# haaaaaack because socket doesn't like unicode types
+def _decode_list(data):
+    rv = []
+    for item in data:
+        if isinstance(item, unicode):
+            item = item.encode('utf-8')
+        elif isinstance(item, list):
+            item = _decode_list(item)
+        elif isinstance(item, dict):
+            item = _decode_dict(item)
+        rv.append(item)
+    return rv
+
+def _decode_dict(data):
+    rv = {}
+    for key, value in data.iteritems():
+        if isinstance(key, unicode):
+           key = key.encode('utf-8')
+        if isinstance(value, unicode):
+           value = value.encode('utf-8')
+        elif isinstance(value, list):
+           value = _decode_list(value)
+        elif isinstance(value, dict):
+           value = _decode_dict(value)
+        rv[key] = value
+    return rv
+
+class HTTPrettyPlayback(object):
+    """
+    Load in JSON serialized requests via a context manager.
+    """
+    def __init__(self, path, clear=True):
+        self.path = path
+        self.clear = clear
+
+    def __enter__(self):
+        HTTPretty.enable()
+
+        if self.clear:
+            HTTPretty._entries.clear()
+
+        uris = json.loads(open(self.path).read(), object_hook=_decode_dict)
+        uris = uris if isinstance(uris, list) else [uris]
+
+        for uri in uris:
+            HTTPretty.register_uri(
+                uri['request'].get('method', 'GET'),
+                uri['request']['uri'],
+                body=uri['response'].get('body', ''),
+                adding_headers=uri['response'].get('adding_headers', None),
+                forcing_headers=uri['response'].get('forcing_headers', None),
+                status=uri['response'].get('status', 200),
+                **uri['response'].get('headers', {})
+            )
+
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if self.clear:
+            HTTPretty._entries.clear()
+        HTTPretty.disable()
+
 
 class HTTPretty(object):
     u"""The URI registration class"""
@@ -537,6 +600,8 @@ class HTTPretty(object):
     HEAD = 'HEAD'
     PATCH = 'PATCH'
     last_request = HTTPrettyRequestEmpty()
+
+    playback = HTTPrettyPlayback
 
     @classmethod
     def historify_request(cls, headers, body=''):
